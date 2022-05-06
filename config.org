@@ -1,0 +1,228 @@
+* Evil Mode
+#+begin_src emacs-lisp
+  (evil-mode 1)
+#+end_src
+* stop auto save
+#+begin_src emacs-lisp
+(setq make-backup-files nil)
+#+end_src
+* Terminal
+#+begin_src emacs-lisp
+;;my default shell and terminal as ansai terminal
+(defvar my-term-shell "/bin/bash")
+(defadvice ansi-term (before force-bash)
+  (interactive (list my-term-shell)))
+(ad-activate 'ansi-term)
+(global-set-key (kbd "C-x C-t") 'ansi-term)
+#+end_src
+
+* Org Bullets 
+** nicer bullets in org
+#+begin_src emacs-lisp
+(use-package org-bullets
+  :ensure t
+  :config
+    (add-hook 'org-mode-hook (lambda () (org-bullets-mode))))
+#+end_src
+
+* Some minor changes at startup
+** no startup screen, no ringbell, shorthand prompt and more
+#+begin_src emacs-lisp
+(setq inhibit-startup-message t)
+(setq ring-bell-function 'ignore)
+(global-prettify-symbols-mode t)  ;;pretty symbols
+(defalias 'yes-or-no-p 'y-or-n-p)
+(tool-bar-mode -1)
+(menu-bar-mode -1)
+(scroll-bar-mode -1)
+(setq create-lockfiles nil)
+
+#+end_src
+
+* Check Parenthesis and which-key
+#+begin_src emacs-lisp
+(add-hook 'emacs-lisp-mode-hook
+  (lambda ()
+   (add-hook 'local-write-file-hooks 
+	     'check-parens)))
+
+(use-package which-key
+  :ensure t
+  :init
+  (which-key-mode))
+
+(show-paren-mode 1)
+
+#+end_src
+
+* UTF-8
+#+begin_src emacs-lisp
+(setq locale-coding-system 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(set-selection-coding-system 'utf-8)
+(prefer-coding-system 'utf-8)
+#+end_src
+* Async
+#+begin_src emacs-lisp
+(use-package async
+  :ensure t
+  :init (dired-async-mode 1))
+#+end_src
+* Projectile mode
+#+begin_src emacs-lisp
+(use-package projectile
+  :ensure t
+  :init
+    (projectile-mode 1))
+
+(global-set-key (kbd "<f5>") 'projectile-compile-project)
+
+
+#+end_src
+* Dashboard
+
+#+begin_src emacs-lisp
+(use-package dashboard
+  :ensure t
+  :config
+    (dashboard-setup-startup-hook)
+    (setq dashboard-center-content t)
+    (setq dashboard-startup-banner "~/.emacs.d/img/dashLogo.png")
+    (setq dashboard-items '((recents  . 5)
+                            (projects . 5)
+                            (agenda . 5)))
+    (setq dashboard-banner-logo-title "“Be tolerant with others and strict with yourself.” – Marcus Aurelius"))
+    (setq dashboard-center-content t)
+#+end_src
+* Following spliting
+#+begin_src emacs-lisp
+(defun split-and-follow-horizontally ()
+  (interactive)
+  (split-window-below)
+  (balance-windows)
+  (other-window 1))
+(global-set-key (kbd "C-x 2") 'split-and-follow-horizontally)
+
+(defun split-and-follow-vertically ()
+  (interactive)
+  (split-window-right)
+  (balance-windows)
+  (other-window 1))
+(global-set-key (kbd "C-x 3") 'split-and-follow-vertically)
+#+end_src
+* Kill buffer without prompting
+#+begin_src emacs-lisp
+(setq kill-buffer-query-functions (delq 'process-kill-buffer-query-function kill-buffer-query-functions))
+#+end_src
+* Avy
+#+begin_src emacs-lisp
+(use-package avy
+  :ensure t
+  :bind
+    ("M-s" . avy-goto-char))
+#+end_src
+* Reload the configuration
+#+begin_src emacs-lisp
+(defun config-reload ()
+  "Reloads ~/.emacs.d/config.org at runtime"
+  (interactive)
+  (org-babel-load-file (expand-file-name "~/.emacs.d/config.org")))
+(global-set-key (kbd "C-c r") 'config-reload)
+#+end_src
+* Fly check
+#+begin_src emacs-lisp
+(use-package flycheck
+  :ensure t)
+#+end_src
+* Magit
+#+begin_src emacs-lisp
+(use-package magit
+  :ensure t
+  :config
+  (setq magit-push-always-verify nil)
+  (setq git-commit-summary-max-length 50)
+  :bind
+  ("M-g" . magit-status))
+#+end_src
+* Line Wrap
+#+begin_src emacs-lisp
+(add-hook 'org-mode-hook
+	    '(lambda ()
+	       (visual-line-mode 1)))
+#+end_src
+* company mode
+#+begin_src emacs-lisp
+(use-package company
+  :ensure t
+  :init
+  :hook (after-init . global-company-mode))
+#+end_src
+
+* vertico
+#+begin_src emacs-lisp
+(use-package vertico
+  :ensure t
+  :bind (:map vertico-map
+         ("C-j" . vertico-next)
+         ("C-k" . vertico-previous)
+         ("C-f" . vertico-exit)
+         :map minibuffer-local-map
+         ("M-h" . backward-kill-word))
+  :custom
+  (vertico-cycle t)
+  :init
+  (vertico-mode))
+
+(use-package savehist
+  :init
+  (savehist-mode))
+
+#+end_src
+* eww web browser
+#+begin_src emacs-lisp
+;; eww (the web browser)
+(setq eww-download-directory "~/Downloads/"
+      eww-desktop-remove-duplicates t
+      eww-history-limit 20
+      eww-search-prefix "https://lite.duckduckgo.com/lite/?q=")
+#+end_src
+
+* simple httpd
+#+begin_src emacs-lisp
+(use-package simple-httpd
+  :ensure t)
+#+end_src
+* emacs go mode
+#+begin_src emacs-lisp
+(use-package go-mode
+  :ensure t
+  :config
+  (add-to-list 'exec-path "/usr/local/go/bin")
+  (setq gofmt-command "goimports")
+  (add-hook 'go-mode-hook
+    (lambda () 
+	(local-set-key (kbd "C-c d") 'godoc-at-point)))
+  (add-hook 'go-mode-hook
+	    (lambda () 
+	      (local-set-key (kbd "C-c 5") 'recompile)))
+  (add-hook 'go-mode-hook
+	    (lambda () 
+	      (local-set-key (kbd "C-c 6") 'gofmt))))
+
+(use-package company
+  :ensure t
+  :config
+  (company-tng-configure-default)
+  (setq company-go-insert-arguments nil)
+  (setq company-idle-delay 0)
+  (setq company-minimum-prefix-length 0))
+
+(use-package company-go
+  :ensure t
+  :config
+  (add-hook 'go-mode-hook (lambda ()
+			    (set (make-local-variable 'company-backends)
+				 '(company-go))
+			    (company-mode))))
+#+end_src
